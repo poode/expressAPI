@@ -1,6 +1,6 @@
 const  Joi =  require('joi');
 const express = require('express');
-
+const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const router = require('./router');
 const template = require('./welcome');
@@ -10,9 +10,10 @@ const schema =  Joi.object().keys({
 
 app = express();
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-let courseList = [
+
+const courseList = [
     {id: 1, name:"First Course"},
     {id: 2, name:"Second Course"},
     {id: 3, name:"Third Course"},
@@ -27,9 +28,28 @@ app.get('/', (req, res) => {
     });
 });
 
+app.param('courseId', (req, res, next, id) => {
+    const courseId = Number(id);
+    courseIndex = courseList.findIndex(course => course.id === courseId);
+    if(courseIndex !== -1) {
+        req.courseIndex = courseIndex;
+        next();
+    }
+    else {
+        res.status(404).send();
+    }
+});
+
+
+app.get('/api/courses/:courseId', (req, res, next) => {
+    res.status(200).send(courseList[req.courseIndex]);
+});
+
 app.get('/api/courses', (req, res) => {
     res.send(courseList);
 });
+
+
 
 app.post('/api/courses', (req, res) => {
     const newCourse = {
@@ -42,6 +62,8 @@ app.post('/api/courses', (req, res) => {
     res.send(newCourse);
 
 });
+
+
 
 
 
